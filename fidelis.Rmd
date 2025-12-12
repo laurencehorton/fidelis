@@ -3,9 +3,10 @@ title: "FIDELIS Repository Landscape Survey"
 author: "Laurence Horton"
 date: "`r Sys.Date()`"
 output:
-  word_document: default
   html_document: default
-  pdf_document: default
+  word_document: default
+  ioslides_presentation: default
+  powerpoint_presentation: default
 css: style.css
 ---
 ```{r setup, include=FALSE}
@@ -47,16 +48,21 @@ fidelis_colours <-
   c("#FBB03B", # Pastel orange
     "#001B6D", # Midnight blue
     "#3C85FA", # Bright blue
-    "#6e5200", #Very dark orange
-    "#040405", # Very dark (mostly black) blue
-    "#e4fa3c", # Bright yellow
-    "#356d00" # Dark green
+    "#8ABAE7", # Cyan
+    "#D8E5F3", # Light grayish blue.
+    "#6e5200", # Very dark orange
+    "#e4fa3c" # Bright yellow.
     )
+bar_chart_colours <- c("#D8E5F3", "#8ABAE7", "#3C85FA", "#001B6D", "#FBB03B")
 ```
 
+Data source:  
+
+M. Verburg; T. Jouneau; L. Horton; G. van Geest; S. Tujunen; J. Kallio; T. Paulsen; P. Conzett; T. Alaterä; M. Kleemola; J. Meijer; Å.J. Holthe-Tveit; A.K. Forshaug, 2025, "Repository landscape data for the FIDELIS project", https://doi.org/10.17026/SS/XX8PBN, DANS Data Station Social Sciences and Humanities, V1
+
 ```{r download data, include=FALSE}
-url <- "https://docs.google.com/spreadsheets/d/1BH0vJ0U9eUVxtBPRT0lWFHodvwXrLDO4/edit?usp=share_link&ouid=114123408748644094622&rtpof=true&sd=true"
-fidelis <- read_excel("20250428_FIDELISlandscapesurvey_dataforanalysis.xlsx")
+# Works only with the Excel version of the data set.
+fidelis <- read_excel("~/FIDELIS_LandscapeSurvey_Data.xlsx")
 ```
 
 [<img src="EOSC Fidelis Final Logo.png" width="250"/>](EOSC Fidelis Final Logo.png)
@@ -112,70 +118,6 @@ kable(
 )
 ```
 
-***What is your role in the repository?**  
-If your job covers multiple roles, please select all that apply to you.  
-```{r characteristics role, echo = FALSE}
-characteristics_role <-
-  fidelis |>
-  select(
-    "What is your role in the repository? If your job covers multiple roles, please select all that apply to you."
-  ) |>
-  rename("Role" = 1) |>
-  separate_wider_delim(Role, "; ", names_sep = "", too_few = "align_start") |>
-  pivot_longer(cols = starts_with("Role")) |>
-  select(value) |>
-  rename(Role = value) |>
-  drop_na() |>
-  count(Role) |>
-  arrange(desc(n))
-
-# Visualisation
-characteristics_role |>
-  ggplot(aes(fct_reorder(Role, n), n)) +
-  geom_col(fill = "#FBB03B") +
-  coord_flip() +
-  geom_text(
-    aes(label = n),
-    family = "Calibri",
-    colour = "#75787B",
-    hjust = -.5
-  ) +
-  labs(
-    x = NULL,
-    y = NULL,
-    fill = "",
-    caption = paste0(
-      "n =",
-      nrow(fidelis),
-      ", respondents could select all options that apply"
-    )
-  ) +
-  theme_fidelis() +
-  theme(
-    legend.position = "none",
-    axis.line = element_blank(),
-    axis.ticks = element_blank(),
-    axis.text.x = element_blank(),
-    text = element_text(size = 12)
-  ) +
-  ylim(c(0, 130))
-
-# Others
-kable(
-  fidelis |>
-    select("Other, namely:...3") |>
-    drop_na() |>
-    rename("Role_other" = 1) |>
-    separate_wider_delim(Role_other, "; ", names_sep = "", too_few = "align_start") |>
-    pivot_longer(cols = starts_with("Role")) |>
-    select(value) |>
-    rename(Role = value) |>
-    drop_na() |>
-    count(Role) |>
-    arrange(desc(n))
-)
-```
-
 ***In which country is your repository located?**  
 If your repository is related to multiple countries, select the country where headquarters are located.  
 ```{r characteristics country, echo = FALSE}
@@ -187,7 +129,7 @@ characteristics_country <- fidelis |>
   rename("Country" = 1)
 
 characteristics_country_other <- fidelis |>
-  select("Other, namely:...5") |>
+  select("Other, namely:...3") |>
   drop_na() |>
   rename("Country" = 1)
 
@@ -332,7 +274,7 @@ characteristics_type |>
 # Others
 kable(
   fidelis |>
-    select("Other, namely:...12") |>
+    select("Other, namely:...10") |>
     drop_na() |>
     rename("Type_other" = 1) |>
     separate(Type_other, c("Type_other"), ";")
@@ -608,7 +550,7 @@ characteristics_content |>
 # separate first on ; then on ,
 kable(
   fidelis |>
-    select("Other, namely:...20") |>
+    select("Other, namely:...18") |>
     rename("Content" = 1) |>
     separate_wider_delim(Content, ", ", names_sep = "", too_few = "align_start") |>
     pivot_longer(cols = starts_with("Content")) |>
@@ -705,17 +647,17 @@ characteristics_levels$Provision <-
 characteristics_levels |>
   ggplot(aes(x = Level, y = n, fill = Provision)) +
   geom_bar(stat = "identity") +
-  scale_color_manual(values = fidelis_colours) +
-  scale_fill_manual(values = fidelis_colours) +
+  scale_color_manual(values = bar_chart_colours) +
+  scale_fill_manual(values = bar_chart_colours) +
   geom_text(aes(label = n),
   position = position_stack(vjust = .5),
   size = 3,
   colour = "white") +
-  labs(
-    x = NULL,
-    y = NULL,
-    fill = "",
-  theme_fidelis()) +
+  labs(dictionary = c(
+    Level = "",
+    n = "",
+    Provision = "")) +
+  theme_fidelis() +
   theme(
     axis.line = element_blank(),
     axis.ticks = element_blank(),
@@ -879,10 +821,11 @@ characteristics_certification |>
     size = 3,
     colour = "white"
   ) +
-  labs(x = NULL,
-       y = NULL,
-       fill = "",
-       theme_fidelis()) +
+  labs(dictionary = c(
+    Certificate = "",
+    n = "",
+    Status = "")) +
+  theme_fidelis() +
   guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
   theme(
     axis.line = element_blank(),
@@ -893,6 +836,34 @@ characteristics_certification |>
   ) +
   theme(legend.position = "bottom") +
   coord_flip()
+
+characteristics_certification |>
+  ggplot(aes(x = n, y = Status)) +
+  geom_bar(stat='identity', fill = "#FBB03B") +
+  facet_wrap(~ Certificate) +
+  scale_color_manual(values = fidelis_colours) +
+  scale_fill_manual(values = fidelis_colours) +
+  geom_text(
+    aes(label = n),
+    position = position_stack(vjust = .5),
+    size = 3,
+    colour = "white"
+  ) +
+  guides(fill = guide_legend(nrow = 3, byrow = TRUE)) +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line.x = element_blank(),
+    axis.text.x = element_blank(),
+    panel.background = element_blank()
+  ) +
+    labs(dictionary = c(
+    Certificate = "",
+    n = "",
+    Status = "")) +
+  theme_fidelis() +
+  theme(legend.position = "bottom")
+
 ```
 
 **What other certification(s) does your repository have, or are relevant for your repository to achieve?**  
@@ -1027,10 +998,11 @@ activities_challenges |>
     size = 3,
     colour = "white"
   ) +
-  labs(x = NULL,
-       y = NULL,
-       fill = "",
-       theme_fidelis()) +
+  labs(dictionary = c(
+    Activity = "",
+    n = "",
+    Challenge = "")) +
+       theme_fidelis() +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
   theme(
     axis.line = element_blank(),
@@ -1162,12 +1134,12 @@ activities_services |>
 
 # Other responses
 kable(fidelis |>
-        select("Other, namely:...46") |>
+        select("Other, namely:...44") |>
         drop_na() |>
         rename("Other technology" = 1))
 ```
 
-**Does your repository use persistent identifiers (PIDs) for digital objects or meatada elements?**  
+**Does your repository use persistent identifiers (PIDs) for digital objects or metadata elements?**  
 Previously, we asked about the persistent identifiers your repository can be identified by. This question asks about persistent identifiers that can be applied to digital objects or metadata elements in your repository.  
 ```{r activities PIDs, echo=FALSE}
 activities_PIDs <-
@@ -1267,7 +1239,7 @@ PID_type |>
   ylim(c(0, 53))
 
 kable(fidelis |>
-        select("Other, namely:...49") |>
+        select("Other, namely:...47") |>
         drop_na() |>
         rename("Other PID" = 1))
 ```
@@ -1371,7 +1343,7 @@ activities_schemas |>
   ylim(c(0, 49))
 
 kable(fidelis |>
-        select("Other, namely:...61") |>
+        select("Other, namely:...59") |>
         drop_na() |>
         rename("Other schemas" = 1))
 ```
@@ -1466,7 +1438,7 @@ activities_artefacts |>
   ylim(c(0, 37))
 
 kable(fidelis |>
-        select("Other, namely:...64") |>
+        select("Other, namely:...62") |>
         drop_na() |>
         rename("Other schemas" = 1))
 ```
@@ -1825,10 +1797,11 @@ infrastructure_challenges |>
     size = 3,
     colour = "white"
   ) +
-  labs(x = NULL,
-       y = NULL,
-       fill = "",
-       theme_fidelis()) +
+   labs(dictionary = c(
+     Challenge = "",
+     n = "",
+     Extent = "")) +
+       theme_fidelis() +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
   theme(
     axis.line = element_blank(),
@@ -2035,7 +2008,7 @@ Other, namely: How would you describe the extent to which your repository has su
 ```{r infrastructure sustrain, echo=FALSE}
 kable(
   fidelis |>
-    select("Other, namely:...110") |>
+    select("Other, namely:...108") |>
     drop_na() |>
     rename("Other sustainability" = 1)
 )
@@ -2092,7 +2065,7 @@ infrastructure_funding_sources |>
 
 # Other responses
 kable(fidelis |>
-        select("Other, namely:...112") |>
+        select("Other, namely:...110") |>
         drop_na() |>
         rename("Other sources" = 1))
 ```
@@ -2186,18 +2159,19 @@ technology_challenges$Challenge <-
 technology_challenges |>
   ggplot(aes(x = Challenge, y = n, fill = Extent)) +
   geom_bar(stat = "identity") +
-  scale_color_manual(values = fidelis_colours) +
-  scale_fill_manual(values = fidelis_colours) +
+  scale_color_manual(values = bar_chart_colours) +
+  scale_fill_manual(values = bar_chart_colours) +
   geom_text(
     aes(label = n),
     position = position_stack(vjust = .5),
     size = 3,
     colour = "white"
   ) +
-  labs(x = NULL,
-       y = NULL,
-       fill = "",
-       theme_fidelis()) +
+  labs(dictionary = c(
+    Challenge = "",
+    n = "",
+    Extent = "")) +
+  theme_fidelis() +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
   theme(
     axis.line = element_blank(),
@@ -2273,7 +2247,7 @@ technology_processes |>
 
 # Other responses
 kable(fidelis |>
-        select("Other, namely:...121") |>
+        select("Other, namely:...119") |>
         drop_na() |>
         rename("Other Topics" = 1))
 ```
@@ -2396,8 +2370,10 @@ Select all applicable.
 ```{r training find, echo = FALSE}
 training_find <-
   fidelis |>
-  select("Where do you currently (or have you previously) find/receive training on topics related to Trustworthy Digital Repositories? Select all applicable.") |>
-      rename("Source" = 1) |>
+  select(
+    "Where do you currently (or have you previously) find/receive training on topics related to Trustworthy Digital Repositories? Select all applicable."
+  ) |>
+  rename("Source" = 1) |>
   drop_na()
 
 responses <- nrow(training_find)
@@ -2411,6 +2387,22 @@ training_find <-
   count(Source) |>
   drop_na() |>
   arrange(desc(n))
+
+training_find <-
+  training_find |>
+  mutate(
+    Source = recode(
+      Source,
+      "In specific communities I am part of (e.g. CESSDA, ELIXIR, RDA)" = "Part of specific communities",
+      "From peers – (inter)nationally" = "Peers",
+      "European project-based training initiatives (e.g. EOSC-Nordic, FAIRsFAIR, FAIR-IMPACT)" = "European projects",
+      "At my host institution – from my peers" =  "Host institution (peers)",
+      "Offerings available online" = "Online", "National training initiatives" = "National initatives",
+      "International training initiatives (e.g. COAR)" = "International initatiotives",
+      "At my host institution – formally offered training" = "Host institution",
+      "Nowhere / I am not aware of any training opportunities related to Trustworthy Digital Repositories" = "Nowhere/Not aware"
+    )
+  )
 
 # Visualisation
 training_find |>
@@ -2427,7 +2419,11 @@ training_find |>
     x = NULL,
     y = NULL,
     fill = "",
-    caption = paste0("n =", responses, ", respondents could select all applicable options.")
+    caption = paste0(
+      "n =",
+      responses,
+      ", respondents could select all applicable options."
+    )
   ) +
   scale_x_discrete(labels = label_wrap(40)) +
   theme_fidelis() +
@@ -2439,14 +2435,6 @@ training_find |>
     text = element_text(size = 12)
   ) +
   ylim(c(0, 80))
-
-# Other responses
-kable(
-  fidelis |>
-    select("Other, namely:...135") |>
-    rename("Other training source" = 1) |>
-    drop_na()
-)
 ```
 
 **Which format(s) of training or support have you previously experienced?**  
@@ -2500,7 +2488,7 @@ training_format |>
 
 # Other responses
 kable(fidelis |>
-        select("Other, namely:...137") |>
+        select("Other, namely:...135") |>
         rename("Other format" =  1) |>
         drop_na())
 ```
@@ -2539,8 +2527,8 @@ training_topics <-
   arrange(desc(n))
 
 # Visualisation
-training_format |>
-  ggplot(aes(fct_reorder(Format, n), n)) +
+training_topics |>
+  ggplot(aes(fct_reorder(Topic, n), n)) +
   geom_col(fill = "#FBB03B") +
   coord_flip() +
   geom_text(
@@ -2564,7 +2552,7 @@ training_format |>
     axis.text.x = element_blank(),
     text = element_text(size = 12)
   ) +
-  ylim(c(0, 140))
+  ylim(c(0, 83))
 
 # Other responses
 kable(fidelis |>
@@ -2624,7 +2612,7 @@ training_support |>
 
 # Other responses
 kable(fidelis |>
-        select("Other, namely:...142") |>
+        select("Other, namely:...140") |>
         rename("Other format" =  1) |>
         drop_na())
 ```
@@ -2665,7 +2653,7 @@ objective <- fidelis |>
   drop_na() |>
   rename("Indicate" = 1) |>
   count(Indicate) |>
-  mutate("Statement" = "Achive objective/outcome")
+  mutate("Statement" = "Achieve objective/outcome")
 
 encourage <- fidelis |>
   select(
@@ -2726,7 +2714,7 @@ training_join$Statement <-
       "Train at own pace",
       "Prefer short activities",
       "My orginisation encourages",
-      "Achive objective/outcome",
+      "Achieve objective/outcome",
       "Create tangible product",
       "Recieve badge or certificate"
     )
@@ -2748,18 +2736,14 @@ training_join$Indicate <-
 training_join |>
   ggplot(aes(x = Statement, y = n, fill = Indicate)) +
   geom_bar(stat = "identity") +
-  scale_color_manual(values = fidelis_colours) +
-  scale_fill_manual(values = fidelis_colours) +
+  scale_color_manual(values = bar_chart_colours) +
+  scale_fill_manual(values = bar_chart_colours) +
   geom_text(
     aes(label = n),
     position = position_stack(vjust = .5),
     size = 3,
     colour = "white"
   ) +
-  labs(x = NULL,
-       y = NULL,
-       fill = "",
-       theme_fidelis()) +
   theme(
     axis.line = element_blank(),
     axis.ticks = element_blank(),
@@ -2767,6 +2751,10 @@ training_join |>
     axis.text.x = element_blank(),
     panel.background = element_blank()
   ) +
+  labs(dictionary = c(
+  Statement = "",
+  Indicate  = "",
+  n = "")) +
   theme(legend.position = "bottom") +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +  
   coord_flip()
@@ -2879,18 +2867,19 @@ training_important$Indicate <-
 training_important |>
   ggplot(aes(x = Statement, y = n, fill = Indicate)) +
   geom_bar(stat = "identity") +
-  scale_color_manual(values = fidelis_colours) +
-  scale_fill_manual(values = fidelis_colours) +
+  scale_color_manual(values = bar_chart_colours) +
+  scale_fill_manual(values = bar_chart_colours) +
   geom_text(
     aes(label = n),
     position = position_stack(vjust = .5),
     size = 3,
     colour = "white"
   ) +
-  labs(x = NULL,
-       y = NULL,
-       fill = "",
-       theme_fidelis()) +
+  labs(dictionary = c(
+    Statement = "",
+    n = "",
+    Indicate = "")) +
+  theme_fidelis() +
   theme(
     axis.line = element_blank(),
     axis.ticks = element_blank(),
@@ -3017,18 +3006,19 @@ training_likely$Intent <-
 training_likely |>
   ggplot(aes(x = Topic, y = n, fill = Intent)) +
   geom_bar(stat = "identity") +
-  scale_color_manual(values = fidelis_colours) +
-  scale_fill_manual(values = fidelis_colours) +
+  scale_color_manual(values = bar_chart_colours) +
+  scale_fill_manual(values = bar_chart_colours) +
   geom_text(
     aes(label = n),
     position = position_stack(vjust = .5),
     size = 3,
     colour = "white"
   ) +
-  labs(x = NULL,
-       y = NULL,
-       fill = "",
-       theme_fidelis()) +
+  labs(dictionary = c(
+    Topic = "",
+    n = "",
+    Intent = "")) +
+  theme_fidelis() +
   theme(
     axis.line = element_blank(),
     axis.ticks = element_blank(),
@@ -3210,10 +3200,11 @@ legal_expertise |>
     size = 3,
     colour = "white"
   ) +
-  labs(x = NULL,
-       y = NULL,
-       fill = "",
-       theme_fidelis()) +
+  labs(dictionary = c(
+    Level = "",
+    n = "",
+    Provision = "")) +
+  theme_fidelis() +
   theme(
     axis.line = element_blank(),
     axis.ticks = element_blank(),
@@ -3229,7 +3220,7 @@ legal_expertise |>
 kable(
   fidelis |>
     select(
-      "Other, namely:...176"
+      "Other, namely:...174"
     ) |>
     rename("Other expertise" = 1) |>
     drop_na()
@@ -3347,7 +3338,7 @@ leagl_challenges |>
 
 # Other responses
 kable(fidelis |>
-        select("Other, namely:...180") |>
+        select("Other, namely:...178") |>
         rename("Other challenges" =  1) |>
         drop_na())
 ```
@@ -3504,7 +3495,7 @@ legal_metadata |>
 
 # Other responses
 kable(fidelis |>
-        select("Other, namely:...186") |>
+        select("Other, namely:...184") |>
         drop_na() |>
         rename("Other standard" = 1))
 ```
@@ -3548,7 +3539,7 @@ kable(
 
 ## FIDELIS network interest and expectations {#network-expectations}
 
-The FIDELIS network will be built within the FIDELIS project. This network of Trustworthy Digital Repositories (TDRs) will support the development and growth of TDRs within the EOSC ecosystem; foster nharmonisation and interoperability across repositories to enable an EOSC federation of TDRs; andnstrengthen the upskilling of repositories and expand the network through an active training and supportn programme. These final questions cover your initial thoughts and expectations on the network so it can be nshaped to support the needs of the community.
+The FIDELIS network will be built within the FIDELIS project. This network of Trustworthy Digital Repositories (TDRs) will support the development and growth of TDRs within the EOSC ecosystem; foster harmonisation and interoperability across repositories to enable an EOSC federation of TDRs; and strengthen the upskilling of repositories and expand the network through an active training and support programme. These final questions cover your initial thoughts and expectations on the network so it can be shaped to support the needs of the community.
 
 ***What do you see as the most important benefit(s) this network should provide to you or your organisation?**  
 ```{r network benefits, echo=FALSE}
@@ -3612,8 +3603,8 @@ network_barriers |>
 
 # Other responses
 kable(fidelis |>
-        select("Other, namely:...192") |>
-        rename("Other mechninisms" = "Other, namely:...192") |>
+        select("Other, namely:...190") |>
+        rename("Other mechninisms" = "Other, namely:...190") |>
         drop_na())
 ```
 
@@ -3682,8 +3673,8 @@ network_collaboration |>
 
 # Other responses
 kable(fidelis |>
-        select("Other, namely:...195") |>
-        rename("Other mechninisms" = "Other, namely:...195") |>
+        select("Other, namely:...193") |>
+        rename("Other mechninisms" = "Other, namely:...193") |>
         drop_na())
 ```
 
@@ -3720,4 +3711,215 @@ kable(
     rename("Other comments" = 1) |>
     drop_na()
 )
+```
+
+# Visualisations
+**Training topics**
+```{r training topics visualisations, echo=FALSE}
+#**Which of these topics have you previously received training or support on?**
+a <-
+  training_topics_recived |>
+  rename(Received = n)
+
+#***Which of these topics would you be interested in receiving (more) training or support on?**
+b <-
+  training_topics |>
+  rename(Interested = n)
+
+#bind
+c <- merge(a, b, by = "Topic")
+
+c <-
+  c |>
+  mutate(Gap = Interested - Received) |>
+  mutate(
+    Topic = recode(
+      Topic,
+      "Developing and sustaining the repository service" = "Develop/sustain repository",
+      "Stakeholder engagement and communication" = "Engagement/communication",
+      "FAIR-enabling qualities (how to make and keep digital objects in your repository FAIR)" = "FAIR-enabling",
+      "Technical infrastructure and repository software" =  "Infrastructure and software"
+    )
+  )
+
+d <-
+  a |>
+  rename(n = "Received") |>
+  mutate(Training = "Received")
+e <- b |>
+  rename(n = "Interested") |>
+  mutate(Training = "Interested")
+
+f <-
+  rbind(d, e)
+
+f <-
+  f |>
+  mutate(
+    Topic = recode(
+      Topic,
+      "Developing and sustaining the repository service" = "Develop/sustain repository",
+      "Stakeholder engagement and communication" = "Engagement/communication",
+      "FAIR-enabling qualities (how to make and keep digital objects in your repository FAIR)" = "FAIR-enabling",
+      "Technical infrastructure and repository software" =  "Infrastructure and software"
+    )
+  )
+
+
+# group bar chart
+ggplot(f, aes(fill = Training, y = Topic, x = n)) +
+  geom_bar(position = 'dodge', stat = 'identity') +
+  xlab("Responses") +
+  ylab("") +
+  scale_fill_manual(values = fidelis_colours) +
+  theme_fidelis() +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    text = element_text(size = 12)
+  )
+
+rm(a, b, c, e, f)
+```
+```{r training formats visualisations, echo=FALSE}
+#**Which format(s) of training or support have you previously experienced?**
+a <-
+  training_format |>
+  rename(Received = n)
+
+#***Which format(s) of training or support would you like to receive?**
+b <-
+  training_support |>
+  rename(Interested = n)
+
+c <-
+  a |>
+  rename(n = "Received") |>
+  mutate(Interest = "Received")
+d <- b |>
+  rename(n = "Interested") |>
+  mutate(Interest = "Interested")
+
+e <-
+  rbind(c, d)
+
+f <-
+  e |>
+  mutate(
+    Format = recode(
+      Format,
+      "Seminars/webinars (i.e. listening to information being provided)" = "Seminars/Webinars",
+      "Peer support (i.e. from direct colleagues or other repositories)" = "Peer support",
+      "(online) workshops (i.e. some level of interactivity in a seminar/webinar)" = "Interactive workshops",
+      "Dedicated time for independent work on a topic" = "Dedicated time",
+      "Hands-on working sessions (e.g. hackathons)" = "Hands on",
+      "Open hours (i.e. possibility to drop in and ask any questions you have)" = "Open hours"
+    )
+  )
+
+# group bar chart
+ggplot(f, aes(fill = Interest, y = Format, x = n)) +
+  geom_bar(position = 'dodge', stat = 'identity') +
+  xlab("Responses") +
+  ylab("") +
+  scale_fill_manual(values = fidelis_colours) +
+  theme_fidelis() +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    text = element_text(size = 12)
+  )
+
+rm(a, b, c, e, f)
+```
+```{r characteristics levels by repository type, echo = FALSE}
+as_deposited_type <- fidelis |>
+  select("What levels of retention, curation, and preservation does your repository provide? For each level, please indicate the status that most accurately fits the situation of your repository. : As deposited - Digital object content and supporting metadata are distributed to users exactly as they are provided by depositors.",
+         "Is your repository domain-specific or generalist?") |>
+  rename("Provision" = 1,
+         "Type" = 2) |>
+  group_by(Type) |>
+  count(Provision) |>
+  mutate("Level" = "As deposited")
+
+deposit_compliance_type <- fidelis |>
+  select("What levels of retention, curation, and preservation does your repository provide? For each level, please indicate the status that most accurately fits the situation of your repository. : Deposit compliance - Digital object content and supporting metadata deposited are checked for compliance with defined criteria, e.g. digital object formats, metadata elements, and compliance with legal and ethical norms.",
+         "Is your repository domain-specific or generalist?") |>
+  rename("Provision" = 1,
+         "Type" = 2) |>
+  group_by(Type) |>
+  count(Provision) |>
+  mutate("Level" = "Deposit compliance")
+
+inital_curation_type <- fidelis |>
+  select("What levels of retention, curation, and preservation does your repository provide? For each level, please indicate the status that most accurately fits the situation of your repository. : Initial curation - The digital objects are curated by your repository to meet defined criteria, which may exceed those defined for Deposit Compliance.",
+         "Is your repository domain-specific or generalist?") |>
+  rename("Provision" = 1,
+         "Type" = 2) |>
+  group_by(Type) |>
+  count(Provision) |>
+  mutate("Level" = "Initial curation")
+
+active_preservation_type <- fidelis |>
+  select("What levels of retention, curation, and preservation does your repository provide? For each level, please indicate the status that most accurately fits the situation of your repository. : Active preservation - In addition to Deposit Compliance and Initial Curation, your repository takes long-term responsibility for ensuring that the digital objects and metadata can be understood and rendered as required by the designated community for reuse.",
+         "Is your repository domain-specific or generalist?") |>
+  rename("Provision" = 1,
+         "Type" = 2) |>
+  group_by(Type) |>
+  count(Provision) |>
+  mutate("Level" = "Active preservation")
+
+characteristics_levels_type <-
+  rbind(as_deposited_type,
+        deposit_compliance_type,
+        inital_curation_type,
+        active_preservation_type)
+
+rm(as_deposited_type,
+   deposit_compliance_type,
+   inital_curation_type,
+   active_preservation_type)
+
+# Set factors
+characteristics_levels_type$Level <-
+  factor(
+    characteristics_levels_type$Level,
+    levels = c(
+      "Active preservation",
+      "Initial curation",
+      "Deposit compliance",
+      "As deposited"
+    )
+  )
+
+characteristics_levels_type$Provision <- 
+  factor(
+    characteristics_levels_type$Provision,
+    levels = c(
+      "No",
+      "Unsure",
+      "Planned",
+      "In implementation",
+      "Implemented"
+      )
+  )
+
+# Visualisation
+characteristics_levels_type |>
+  ggplot(aes(x = Level, y = n, fill = Provision)) +
+  geom_col(position=position_dodge2(preserve="single"))+
+  facet_wrap(~Type) +
+  scale_color_manual(values = bar_chart_colours) +
+  scale_fill_manual(values = bar_chart_colours) +
+  xlab("") +
+  ylab("Number of responses") + 
+  theme_fidelis() +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    panel.background = element_blank()
+  ) +
+  theme(legend.position = "bottom") +
+  guides(fill = guide_legend(nrow = 1, byrow = TRUE)) +
+  coord_flip()
 ```
